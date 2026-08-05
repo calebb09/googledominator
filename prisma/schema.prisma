@@ -1,0 +1,111 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator db {
+  provider = "go run github.com/steebchen/prisma-client-go"
+  output   = "../db"
+}
+
+model PricingPlan {
+  id                   String   @id @default(uuid())
+  name                 String
+  slug                 String   @unique
+  description          String
+  priceMonthly         Float
+  priceAnnual          Float
+  stripePriceIdMonthly String?
+  stripePriceIdAnnual  String?
+  features             String
+  isPopular            Boolean  @default(false)
+  isActive             Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model TaxService {
+  id            String   @id @default(uuid())
+  title         String
+  slug          String   @unique
+  description   String
+  category      String
+  formsIncluded String
+  priceEstimate Float?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model TaxFormCategory {
+  id          String   @id @default(uuid())
+  name        String
+  code        String   @unique
+  description String
+  formType    String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model OnboardingSubmission {
+  id                       String   @id @default(uuid())
+  businessName             String
+  contactName              String
+  phone                    String
+  email                    String
+  hasExistingWebsite       Boolean  @default(false)
+  websiteUrl               String?
+  hasGoogleBusinessProfile Boolean  @default(false)
+  gbpLink                  String?
+  streetAddress            String?
+  city                     String?
+  state                    String?
+  zipCode                  String?
+  primaryCategory          String?
+  servicesOffered          String?
+  targetLocations          String?
+  keywords                 String?
+  visitModel               String?
+  consentTransactional     Boolean  @default(false)
+  consentMarketing         Boolean  @default(false)
+  status                   String   @default("PENDING")
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+}
+
+model Subscription {
+  id                   String    @id @default(uuid())
+  email                String
+  stripeCustomerId     String?
+  stripeSubscriptionId String?   @unique
+  planSlug             String
+  billingCycle         String
+  status               String
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model Order {
+  id                    String   @id @default(uuid())
+  email                 String
+  stripeSessionId       String   @unique
+  stripePaymentIntentId String?
+  planSlug              String?
+  amount                Float
+  currency              String   @default("usd")
+  status                String   @default("pending")
+  createdAt             DateTime @default(now())
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+

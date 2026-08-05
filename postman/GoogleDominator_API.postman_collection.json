@@ -1,0 +1,738 @@
+{
+	"info": {
+		"_postman_id": "a92e104f-1928-482d-88b1-d3091fa01742",
+		"name": "GoogleDominator API Collection",
+		"description": "Postman Collection for GoogleDominator Backend API (Golang, PostgreSQL Prisma, JWT Admin Auth, Authorized POST/PUT/DELETE endpoints, Stripe Integration, Built for Taxes & Pricing)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "admin_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Returns operational status of the server and PostgreSQL database connection state."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin Auth",
+			"item": [
+				{
+					"name": "Register Admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"GoogleDominator Admin\",\n  \"email\": \"admin@googledominator.co\",\n  \"password\": \"Admin123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"register"
+							]
+						},
+						"description": "Registers a new Admin user with bcrypt password hashing and returns JWT token."
+					},
+					"response": []
+				},
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.collectionVariables.set('admin_token', jsonData.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@googledominator.co\",\n  \"password\": \"Admin123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"login"
+							]
+						},
+						"description": "Authenticates admin credentials, returns JWT token, and auto-saves token to collection variable 'admin_token'."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Pricing",
+			"item": [
+				{
+					"name": "Get All Pricing Plans",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/pricing",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pricing"
+							]
+						},
+						"description": "Fetch all available GoogleDominator pricing tiers including monthly and annual rates."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Pricing Plan by ID or Slug",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/pricing/existing-website",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pricing",
+								"existing-website"
+							]
+						},
+						"description": "Fetch specific pricing plan detail using plan ID or slug."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Pricing Plan (Authorized)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Custom Local Tax Domination\",\n  \"slug\": \"custom-local-tax\",\n  \"description\": \"Tailored local SEO and Google Maps optimization suite for growing tax practices.\",\n  \"price_monthly\": 249.00,\n  \"price_annual\": 1799.00,\n  \"stripe_price_id_monthly\": \"price_1MockCustomMonthly\",\n  \"stripe_price_id_annual\": \"price_1MockCustomAnnual\",\n  \"features\": [\n    \"Google Business Profile Setup & Optimization\",\n    \"Form 1040/1120 Keyword Strategy\",\n    \"Local Citation Building\",\n    \"Monthly Analytics Reporting\"\n  ],\n  \"is_popular\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/pricing",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pricing"
+							]
+						},
+						"description": "Admin endpoint to create a new pricing tier. Requires Authorization header."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Pricing Plan (Authorized)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Custom Local Tax Plan\",\n  \"price_monthly\": 269.00,\n  \"price_annual\": 1899.00,\n  \"is_popular\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/pricing/custom-local-tax",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pricing",
+								"custom-local-tax"
+							]
+						},
+						"description": "Admin endpoint to update an existing pricing tier by ID or slug. Requires Authorization header."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Pricing Plan (Authorized)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/pricing/custom-local-tax",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pricing",
+								"custom-local-tax"
+							]
+						},
+						"description": "Admin endpoint to delete a pricing tier. Requires Authorization header."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Built for Taxes",
+			"item": [
+				{
+					"name": "Get Tax Services Catalog",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/taxes/services",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"taxes",
+								"services"
+							]
+						},
+						"description": "Lists all Built for Taxes services, packages, and included tax forms."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tax Service Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/taxes/services/google-maps-tax-domination",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"taxes",
+								"services",
+								"google-maps-tax-domination"
+							]
+						},
+						"description": "Fetch details of a single tax service package."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tax Form Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/taxes/forms",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"taxes",
+								"forms"
+							]
+						},
+						"description": "Fetch supported tax forms categorized by Individual (1040, W2), Business (1120, 1065, K1), and Resolution (2848, 433-A)."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Tax Service Offering (Authorized)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"CPA Audit & Form 2848 Resolution Engine\",\n  \"slug\": \"cpa-audit-resolution-engine\",\n  \"description\": \"Targeted marketing setup for tax resolution professionals and IRS audit defense specialists.\",\n  \"category\": \"Tax Resolution\",\n  \"forms_included\": [\n    \"Form 2848\",\n    \"Form 8821\",\n    \"Form 433-A\"\n  ],\n  \"price_estimate\": 397.00\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/taxes/services",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"taxes",
+								"services"
+							]
+						},
+						"description": "Admin endpoint to create a tax service package. Requires Authorization header."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Tax Service Offering (Authorized)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated CPA Audit & Resolution Engine\",\n  \"price_estimate\": 447.00\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/taxes/services/cpa-audit-resolution-engine",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"taxes",
+								"services",
+								"cpa-audit-resolution-engine"
+							]
+						},
+						"description": "Admin endpoint to update a tax service offering. Requires Authorization header."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Tax Service Offering (Authorized)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/taxes/services/cpa-audit-resolution-engine",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"taxes",
+								"services",
+								"cpa-audit-resolution-engine"
+							]
+						},
+						"description": "Admin endpoint to delete a tax service package. Requires Authorization header."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Tax Form Category (Authorized)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Estate & Trust Tax Returns\",\n  \"code\": \"ESTATE-TAX\",\n  \"description\": \"Tax returns for estates, trusts, and gift tax filings.\",\n  \"form_type\": \"Fiduciary\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/taxes/forms",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"taxes",
+								"forms"
+							]
+						},
+						"description": "Admin endpoint to create a new tax form category. Requires Authorization header."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Tax Form Category (Authorized)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Estate & Fiduciary Tax Returns\",\n  \"description\": \"Comprehensive tax returns for estates, trusts, and gift tax filings.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/taxes/forms/cat-estate-tax",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"taxes",
+								"forms",
+								"cat-estate-tax"
+							]
+						},
+						"description": "Admin endpoint to update a tax form category. Requires Authorization header."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Tax Form Category (Authorized)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/taxes/forms/cat-estate-tax",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"taxes",
+								"forms",
+								"cat-estate-tax"
+							]
+						},
+						"description": "Admin endpoint to delete a tax form category. Requires Authorization header."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Onboarding Form",
+			"item": [
+				{
+					"name": "Submit Onboarding Form",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"business_name\": \"Liberty Tax & Advisory Group\",\n  \"contact_name\": \"Michael Smith, EA\",\n  \"phone\": \"+1-214-555-0182\",\n  \"email\": \"michael@libertytaxgroup.com\",\n  \"has_existing_website\": true,\n  \"website_url\": \"https://libertytaxgroup.com\",\n  \"has_google_business_profile\": true,\n  \"gbp_link\": \"https://maps.google.com/?cid=987654321\",\n  \"street_address\": \"500 Main Street, Suite 200\",\n  \"city\": \"Dallas\",\n  \"state\": \"TX\",\n  \"zip_code\": \"75202\",\n  \"primary_category\": \"Tax Preparation & Accounting\",\n  \"services_offered\": \"Individual Form 1040, Corporate 1120S, Bookkeeping\",\n  \"target_locations\": \"Dallas TX, Richardson TX, Garland TX\",\n  \"keywords\": \"tax prep near me, CPA Dallas, tax return help\",\n  \"visit_model\": \"Both In-Person & Virtual\",\n  \"consent_transactional\": true,\n  \"consent_marketing\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/onboarding",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"onboarding"
+							]
+						},
+						"description": "Submits multi-step tax and local SEO onboarding submission."
+					},
+					"response": []
+				},
+				{
+					"name": "List Submissions (Authorized)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/onboarding",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"onboarding"
+							]
+						},
+						"description": "Retrieve all onboarding form submissions. Requires Authorization header."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Submission by ID (Authorized)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/onboarding/sub-sample-001",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"onboarding",
+								"sub-sample-001"
+							]
+						},
+						"description": "Fetch a specific submission by submission ID. Requires Authorization header."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Submission Status (Authorized)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"APPROVED\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/onboarding/sub-sample-001",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"onboarding",
+								"sub-sample-001"
+							]
+						},
+						"description": "Update status or details of an onboarding submission. Requires Authorization header."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Submission (Authorized)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/onboarding/sub-sample-001",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"onboarding",
+								"sub-sample-001"
+							]
+						},
+						"description": "Delete an onboarding submission. Requires Authorization header."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Stripe Payments",
+			"item": [
+				{
+					"name": "Create Stripe Checkout Session",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"plan_slug\": \"new-website\",\n  \"billing_cycle\": \"monthly\",\n  \"email\": \"michael@libertytaxgroup.com\",\n  \"success_url\": \"https://googledominator.co/checkout/success\",\n  \"cancel_url\": \"https://googledominator.co/checkout/cancel\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/stripe/checkout-session",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"stripe",
+								"checkout-session"
+							]
+						},
+						"description": "Generates a Stripe Checkout Session URL and ID for subscription/service purchase."
+					},
+					"response": []
+				},
+				{
+					"name": "Stripe Webhook Listener",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Stripe-Signature",
+								"value": "t=1700000000,v1=mock_signature_for_testing"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"evt_test_001\",\n  \"object\": \"event\",\n  \"type\": \"checkout.session.completed\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"cs_test_mock_new-website_monthly\",\n      \"customer_email\": \"michael@libertytaxgroup.com\",\n      \"payment_status\": \"paid\",\n      \"amount_total\": 29700\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/stripe/webhook",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"stripe",
+								"webhook"
+							]
+						},
+						"description": "Receives Stripe webhook payloads for checkout session completion and payment updates."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
