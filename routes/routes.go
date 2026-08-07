@@ -28,13 +28,16 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	}))
 
 	// Health check endpoint
-	r.GET("/health", handlers.HealthCheck)
+	// r.GET("/health", handlers.HealthCheck)
 
 	authMiddleware := middleware.AuthMiddleware(cfg)
 
 	// API v1 routes group
 	v1 := r.Group("/api/v1")
 	{
+		// Health check endpoint
+    	v1.GET("/health", handlers.HealthCheck)
+
 		// Admin Authentication endpoints
 		adminAuth := v1.Group("/admin")
 		{
