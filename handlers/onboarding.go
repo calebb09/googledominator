@@ -29,31 +29,34 @@ type CreateOnboardingSubmissionInput struct {
 	VisitModel               string `json:"visit_model"`
 	ConsentTransactional     bool   `json:"consent_transactional"`
 	ConsentMarketing         bool   `json:"consent_marketing"`
+	TemplateID               string `json:"template_id"`
 }
 
 type OnboardingSubmissionResponse struct {
-	ID                       string    `json:"id"`
-	BusinessName             string    `json:"business_name"`
-	ContactName              string    `json:"contact_name"`
-	Phone                    string    `json:"phone"`
-	Email                    string    `json:"email"`
-	HasExistingWebsite       bool      `json:"has_existing_website"`
-	WebsiteUrl               string    `json:"website_url,omitempty"`
-	HasGoogleBusinessProfile bool      `json:"has_google_business_profile"`
-	GbpLink                  string    `json:"gbp_link,omitempty"`
-	StreetAddress            string    `json:"street_address,omitempty"`
-	City                     string    `json:"city,omitempty"`
-	State                    string    `json:"state,omitempty"`
-	ZipCode                  string    `json:"zip_code,omitempty"`
-	PrimaryCategory          string    `json:"primary_category,omitempty"`
-	ServicesOffered          string    `json:"services_offered,omitempty"`
-	TargetLocations          string    `json:"target_locations,omitempty"`
-	Keywords                 string    `json:"keywords,omitempty"`
-	VisitModel               string    `json:"visit_model,omitempty"`
-	ConsentTransactional     bool      `json:"consent_transactional"`
-	ConsentMarketing         bool      `json:"consent_marketing"`
-	Status                   string    `json:"status"`
-	CreatedAt                time.Time `json:"created_at"`
+	ID                       string            `json:"id"`
+	BusinessName             string            `json:"business_name"`
+	ContactName              string            `json:"contact_name"`
+	Phone                    string            `json:"phone"`
+	Email                    string            `json:"email"`
+	HasExistingWebsite       bool              `json:"has_existing_website"`
+	WebsiteUrl               string            `json:"website_url,omitempty"`
+	HasGoogleBusinessProfile bool              `json:"has_google_business_profile"`
+	GbpLink                  string            `json:"gbp_link,omitempty"`
+	StreetAddress            string            `json:"street_address,omitempty"`
+	City                     string            `json:"city,omitempty"`
+	State                    string            `json:"state,omitempty"`
+	ZipCode                  string            `json:"zip_code,omitempty"`
+	PrimaryCategory          string            `json:"primary_category,omitempty"`
+	ServicesOffered          string            `json:"services_offered,omitempty"`
+	TargetLocations          string            `json:"target_locations,omitempty"`
+	Keywords                 string            `json:"keywords,omitempty"`
+	VisitModel               string            `json:"visit_model,omitempty"`
+	ConsentTransactional     bool              `json:"consent_transactional"`
+	ConsentMarketing         bool              `json:"consent_marketing"`
+	TemplateID               string            `json:"template_id,omitempty"`
+	Template                 *TemplateResponse `json:"template,omitempty"`
+	Status                   string            `json:"status"`
+	CreatedAt                time.Time         `json:"created_at"`
 }
 
 var (
@@ -99,11 +102,7 @@ func CreateOnboardingSubmission(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	if db.Instance != nil && db.Instance.IsConnected {
-		submission, err := db.Instance.Prisma.OnboardingSubmission.CreateOne(
-			db.OnboardingSubmission.BusinessName.Set(input.BusinessName),
-			db.OnboardingSubmission.ContactName.Set(input.ContactName),
-			db.OnboardingSubmission.Phone.Set(input.Phone),
-			db.OnboardingSubmission.Email.Set(input.Email),
+		createParams := []db.OnboardingSubmissionSetParam{
 			db.OnboardingSubmission.HasExistingWebsite.Set(input.HasExistingWebsite),
 			db.OnboardingSubmission.WebsiteURL.Set(input.WebsiteUrl),
 			db.OnboardingSubmission.HasGoogleBusinessProfile.Set(input.HasGoogleBusinessProfile),
@@ -120,6 +119,17 @@ func CreateOnboardingSubmission(c *gin.Context) {
 			db.OnboardingSubmission.ConsentTransactional.Set(input.ConsentTransactional),
 			db.OnboardingSubmission.ConsentMarketing.Set(input.ConsentMarketing),
 			db.OnboardingSubmission.Status.Set("PENDING"),
+		}
+		if input.TemplateID != "" {
+			createParams = append(createParams, db.OnboardingSubmission.TemplateID.Set(input.TemplateID))
+		}
+
+		submission, err := db.Instance.Prisma.OnboardingSubmission.CreateOne(
+			db.OnboardingSubmission.BusinessName.Set(input.BusinessName),
+			db.OnboardingSubmission.ContactName.Set(input.ContactName),
+			db.OnboardingSubmission.Phone.Set(input.Phone),
+			db.OnboardingSubmission.Email.Set(input.Email),
+			createParams...,
 		).Exec(ctx)
 
 		if err != nil {
@@ -160,6 +170,7 @@ func CreateOnboardingSubmission(c *gin.Context) {
 		VisitModel:               input.VisitModel,
 		ConsentTransactional:     input.ConsentTransactional,
 		ConsentMarketing:         input.ConsentMarketing,
+		TemplateID:               input.TemplateID,
 		Status:                   "PENDING",
 		CreatedAt:                time.Now(),
 	}

@@ -100,8 +100,20 @@ The server will start listening on **`http://localhost:8080`**.
 | **Onboarding** | `POST` | `/api/v1/onboarding` | Submit multi-step onboarding form |
 | | `GET` | `/api/v1/onboarding` | List onboarding submissions |
 | | `GET` | `/api/v1/onboarding/:id` | Get specific submission by ID |
+| **Webinar** | `POST` | `/api/v1/webinar/register` | Register for webinar (Public) |
+| | `GET` | `/api/v1/webinar` | List webinar registrations (Admin) |
+| | `GET` | `/api/v1/webinar/:id` | Get webinar registration by ID (Admin) |
+| | `PUT` | `/api/v1/webinar/:id` | Update webinar registration (Admin) |
+| | `DELETE` | `/api/v1/webinar/:id` | Delete webinar registration (Admin) |
 | **Stripe** | `POST` | `/api/v1/stripe/checkout-session` | Create Stripe Checkout Session |
+| | `GET` | `/api/v1/stripe/session/:session_id` | Get & verify Stripe Checkout Session status |
 | | `POST` | `/api/v1/stripe/webhook` | Process Stripe webhook events |
+| | `GET` | `/api/v1/stripe/orders` | List purchase orders recorded in DB (Admin) |
+| **Templates** | `POST` | `/api/v1/templates` | Create website template (Image upload form-data or JSON) |
+| | `GET` | `/api/v1/templates` | List website templates |
+| | `GET` | `/api/v1/templates/:id` | Get template by ID |
+| | `PUT` | `/api/v1/templates/:id` | Update template |
+| | `DELETE` | `/api/v1/templates/:id` | Delete template |
 
 ---
 
@@ -129,6 +141,21 @@ curl -s http://localhost:8080/health
 ### Fetch Pricing Plans
 ```bash
 curl -s http://localhost:8080/api/v1/pricing
+```
+
+### Webinar Registration
+```bash
+curl -X POST http://localhost:8080/api/v1/webinar/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john.doe@example.com",
+    "phone": "+1-555-234-5678",
+    "registration_type": "tax professional",
+    "additional_info": "Interested in CPA lead generation tactics.",
+    "agreed": true
+  }'
 ```
 
 ### Submit Onboarding Form
@@ -163,3 +190,4 @@ curl -X POST http://localhost:8080/api/v1/stripe/checkout-session \
     "email": "jane@apextax.com"
   }'
 ```
+

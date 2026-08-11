@@ -47,15 +47,27 @@ model TaxFormCategory {
   createdAt   DateTime @default(now())
 }
 
+model Template {
+  id          String                 @id @default(uuid())
+  title       String
+  subtitle    String?
+  description String
+  image       String
+  isActive    Boolean                @default(true)
+  submissions OnboardingSubmission[]
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+}
+
 model OnboardingSubmission {
-  id                       String   @id @default(uuid())
+  id                       String    @id @default(uuid())
   businessName             String
   contactName              String
   phone                    String
   email                    String
-  hasExistingWebsite       Boolean  @default(false)
+  hasExistingWebsite       Boolean   @default(false)
   websiteUrl               String?
-  hasGoogleBusinessProfile Boolean  @default(false)
+  hasGoogleBusinessProfile Boolean   @default(false)
   gbpLink                  String?
   streetAddress            String?
   city                     String?
@@ -66,11 +78,13 @@ model OnboardingSubmission {
   targetLocations          String?
   keywords                 String?
   visitModel               String?
-  consentTransactional     Boolean  @default(false)
-  consentMarketing         Boolean  @default(false)
-  status                   String   @default("PENDING")
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  consentTransactional     Boolean   @default(false)
+  consentMarketing         Boolean   @default(false)
+  templateId               String?
+  template                 Template? @relation(fields: [templateId], references: [id])
+  status                   String    @default("PENDING")
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
 }
 
 model Subscription {
@@ -108,4 +122,19 @@ model Admin {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model WebinarRegistration {
+  id               String   @id @default(uuid())
+  firstName        String
+  lastName         String
+  email            String
+  phone            String
+  registrationType String
+  additionalInfo   String?
+  agreed           Boolean  @default(true)
+  status           String   @default("REGISTERED")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
 
