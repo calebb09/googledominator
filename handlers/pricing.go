@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"strings"
 
@@ -18,6 +19,7 @@ type PricingPlanResponse struct {
 	StripePriceIdMonthly string   `json:"stripe_price_id_monthly"`
 	StripePriceIdAnnual  string   `json:"stripe_price_id_annual"`
 	Features             []string `json:"features"`
+	RecurringPayment     int      `json:"recurring_payment"`
 	IsPopular            bool     `json:"is_popular"`
 	IsActive             bool     `json:"is_active"`
 }
@@ -31,6 +33,7 @@ type CreatePricingPlanInput struct {
 	StripePriceIdMonthly string   `json:"stripe_price_id_monthly"`
 	StripePriceIdAnnual  string   `json:"stripe_price_id_annual"`
 	Features             []string `json:"features" binding:"required"`
+	RecurringPayment     *int     `json:"recurring_payment"`
 	IsPopular            bool     `json:"is_popular"`
 }
 
@@ -52,8 +55,9 @@ var defaultPricingPlans = []PricingPlanResponse{
 			"Review Generation Engine & SMS Alerts",
 			"Dedicated Account Manager & Monthly Reports",
 		},
-		IsPopular: false,
-		IsActive:  true,
+		RecurringPayment: 197,
+		IsPopular:        false,
+		IsActive:         true,
 	},
 	{
 		ID:                   "plan-new-website",
@@ -73,8 +77,9 @@ var defaultPricingPlans = []PricingPlanResponse{
 			"Google Local Service Ads (LSA) Integration",
 			"Priority 24/7 VIP Support",
 		},
-		IsPopular: true,
-		IsActive:  true,
+		RecurringPayment: 297,
+		IsPopular:        true,
+		IsActive:         true,
 	},
 	{
 		ID:                   "plan-enterprise-tax",
@@ -93,59 +98,68 @@ var defaultPricingPlans = []PricingPlanResponse{
 			"Bi-Weekly Strategy Calls with Growth Executive",
 			"100% Ranking Guarantee or Money Back",
 		},
-		IsPopular: false,
-		IsActive:  true,
+		RecurringPayment: 497,
+		IsPopular:        false,
+		IsActive:         true,
 	},
 }
 
 func GetPricingPlans(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	if db.Instance != nil && db.Instance.IsConnected {
-		plans, err := db.Instance.Prisma.PricingPlan.FindMany(
-			db.PricingPlan.IsActive.Equals(true),
-		).Exec(ctx)
+	if db.Instance == nil || !db.Instance.IsConnected {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"success": false,
+			"error":   "Database is unavailable",
+		})
+		return
+	}
 
-		if err == nil {
-			resp := []PricingPlanResponse{}
-			for _, p := range plans {
-				featuresList := []string{}
-				if p.Features != "" {
-					featuresList = strings.Split(p.Features, "||")
-				}
-				monthlyStripe := ""
-				if val, ok := p.StripePriceIDMonthly(); ok {
-					monthlyStripe = val
-				}
-				annualStripe := ""
-				if val, ok := p.StripePriceIDAnnual(); ok {
-					annualStripe = val
-				}
-				resp = append(resp, PricingPlanResponse{
-					ID:                   p.ID,
-					Name:                 p.Name,
-					Slug:                 p.Slug,
-					Description:          p.Description,
-					PriceMonthly:         p.PriceMonthly,
-					PriceAnnual:          p.PriceAnnual,
-					StripePriceIdMonthly: monthlyStripe,
-					StripePriceIdAnnual:  annualStripe,
-					Features:             featuresList,
-					IsPopular:            p.IsPopular,
-					IsActive:             p.IsActive,
-				})
-			}
-			c.JSON(http.StatusOK, gin.H{
-				"success": true,
-				"data":    resp,
-			})
-			return
+	plans, err := db.Instance.Prisma.PricingPlan.FindMany(
+		db.PricingPlan.IsActive.Equals(true),
+	).Exec(ctx)
+	if err != nil {
+		log.Printf("[ERROR] Failed to fetch pricing plans from PostgreSQL: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Failed to fetch pricing plans from database",
+		})
+		return
+	}
+
+	resp := []PricingPlanResponse{}
+	for _, p := range plans {
+		featuresList := []string{}
+		if p.Features != "" {
+			featuresList = strings.Split(p.Features, "||")
 		}
+		monthlyStripe := ""
+		if val, ok := p.StripePriceIDMonthly(); ok {
+			monthlyStripe = val
+		}
+		annualStripe := ""
+		if val, ok := p.StripePriceIDAnnual(); ok {
+			annualStripe = val
+		}
+		resp = append(resp, PricingPlanResponse{
+			ID:                   p.ID,
+			Name:                 p.Name,
+			Slug:                 p.Slug,
+			Description:          p.Description,
+			PriceMonthly:         p.PriceMonthly,
+			PriceAnnual:          p.PriceAnnual,
+			StripePriceIdMonthly: monthlyStripe,
+			StripePriceIdAnnual:  annualStripe,
+			Features:             featuresList,
+			RecurringPayment:     p.RecurringPayment,
+			IsPopular:            p.IsPopular,
+			IsActive:             p.IsActive,
+		})
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"data":    defaultPricingPlans,
+		"data":    resp,
 	})
 }
 
@@ -153,55 +167,60 @@ func GetPricingPlanByID(c *gin.Context) {
 	idOrSlug := c.Param("id")
 	ctx := c.Request.Context()
 
-	if db.Instance != nil && db.Instance.IsConnected {
-		plan, err := db.Instance.Prisma.PricingPlan.FindFirst(
-			db.PricingPlan.Or(
-				db.PricingPlan.ID.Equals(idOrSlug),
-				db.PricingPlan.Slug.Equals(idOrSlug),
-			),
-		).Exec(ctx)
-
-		if err == nil && plan != nil {
-			featuresList := []string{}
-			if plan.Features != "" {
-				featuresList = strings.Split(plan.Features, "||")
-			}
-			monthlyStripe := ""
-			if val, ok := plan.StripePriceIDMonthly(); ok {
-				monthlyStripe = val
-			}
-			annualStripe := ""
-			if val, ok := plan.StripePriceIDAnnual(); ok {
-				annualStripe = val
-			}
-			c.JSON(http.StatusOK, gin.H{
-				"success": true,
-				"data": PricingPlanResponse{
-					ID:                   plan.ID,
-					Name:                 plan.Name,
-					Slug:                 plan.Slug,
-					Description:          plan.Description,
-					PriceMonthly:         plan.PriceMonthly,
-					PriceAnnual:          plan.PriceAnnual,
-					StripePriceIdMonthly: monthlyStripe,
-					StripePriceIdAnnual:  annualStripe,
-					Features:             featuresList,
-					IsPopular:            plan.IsPopular,
-					IsActive:             plan.IsActive,
-				},
-			})
-			return
-		}
+	if db.Instance == nil || !db.Instance.IsConnected {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"success": false,
+			"error":   "Database is unavailable",
+		})
+		return
 	}
 
-	for _, p := range defaultPricingPlans {
-		if p.ID == idOrSlug || p.Slug == idOrSlug {
-			c.JSON(http.StatusOK, gin.H{
-				"success": true,
-				"data":    p,
-			})
-			return
+	plan, err := db.Instance.Prisma.PricingPlan.FindFirst(
+		db.PricingPlan.Or(
+			db.PricingPlan.ID.Equals(idOrSlug),
+			db.PricingPlan.Slug.Equals(idOrSlug),
+		),
+	).Exec(ctx)
+	if err != nil {
+		log.Printf("[ERROR] Failed to fetch pricing plan from PostgreSQL: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Failed to fetch pricing plan from database",
+		})
+		return
+	}
+
+	if plan != nil {
+		featuresList := []string{}
+		if plan.Features != "" {
+			featuresList = strings.Split(plan.Features, "||")
 		}
+		monthlyStripe := ""
+		if val, ok := plan.StripePriceIDMonthly(); ok {
+			monthlyStripe = val
+		}
+		annualStripe := ""
+		if val, ok := plan.StripePriceIDAnnual(); ok {
+			annualStripe = val
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"data": PricingPlanResponse{
+				ID:                   plan.ID,
+				Name:                 plan.Name,
+				Slug:                 plan.Slug,
+				Description:          plan.Description,
+				PriceMonthly:         plan.PriceMonthly,
+				PriceAnnual:          plan.PriceAnnual,
+				StripePriceIdMonthly: monthlyStripe,
+				StripePriceIdAnnual:  annualStripe,
+				Features:             featuresList,
+				RecurringPayment:     plan.RecurringPayment,
+				IsPopular:            plan.IsPopular,
+				IsActive:             plan.IsActive,
+			},
+		})
+		return
 	}
 
 	c.JSON(http.StatusNotFound, gin.H{
@@ -221,6 +240,10 @@ func CreatePricingPlan(c *gin.Context) {
 	}
 
 	featuresStr := strings.Join(input.Features, "||")
+	var recurringPayment int
+	if input.RecurringPayment != nil {
+		recurringPayment = *input.RecurringPayment
+	}
 	ctx := c.Request.Context()
 
 	if db.Instance != nil && db.Instance.IsConnected {
@@ -231,6 +254,7 @@ func CreatePricingPlan(c *gin.Context) {
 			db.PricingPlan.PriceMonthly.Set(input.PriceMonthly),
 			db.PricingPlan.PriceAnnual.Set(input.PriceAnnual),
 			db.PricingPlan.Features.Set(featuresStr),
+			db.PricingPlan.RecurringPayment.Set(recurringPayment),
 			db.PricingPlan.StripePriceIDMonthly.Set(input.StripePriceIdMonthly),
 			db.PricingPlan.StripePriceIDAnnual.Set(input.StripePriceIdAnnual),
 			db.PricingPlan.IsPopular.Set(input.IsPopular),
@@ -262,6 +286,7 @@ func CreatePricingPlan(c *gin.Context) {
 		StripePriceIdMonthly: input.StripePriceIdMonthly,
 		StripePriceIdAnnual:  input.StripePriceIdAnnual,
 		Features:             input.Features,
+		RecurringPayment:     recurringPayment,
 		IsPopular:            input.IsPopular,
 		IsActive:             true,
 	}
@@ -282,6 +307,7 @@ type UpdatePricingPlanInput struct {
 	StripePriceIdMonthly string   `json:"stripe_price_id_monthly"`
 	StripePriceIdAnnual  string   `json:"stripe_price_id_annual"`
 	Features             []string `json:"features"`
+	RecurringPayment     *int     `json:"recurring_payment"`
 	IsPopular            *bool    `json:"is_popular"`
 	IsActive             *bool    `json:"is_active"`
 }
@@ -329,6 +355,9 @@ func UpdatePricingPlan(c *gin.Context) {
 		if input.IsPopular != nil {
 			updates = append(updates, db.PricingPlan.IsPopular.Set(*input.IsPopular))
 		}
+		if input.RecurringPayment != nil {
+			updates = append(updates, db.PricingPlan.RecurringPayment.Set(*input.RecurringPayment))
+		}
 		if input.IsActive != nil {
 			updates = append(updates, db.PricingPlan.IsActive.Set(*input.IsActive))
 		}
@@ -375,6 +404,9 @@ func UpdatePricingPlan(c *gin.Context) {
 			}
 			if input.IsPopular != nil {
 				defaultPricingPlans[i].IsPopular = *input.IsPopular
+			}
+			if input.RecurringPayment != nil {
+				defaultPricingPlans[i].RecurringPayment = *input.RecurringPayment
 			}
 			if input.IsActive != nil {
 				defaultPricingPlans[i].IsActive = *input.IsActive
@@ -434,4 +466,3 @@ func DeletePricingPlan(c *gin.Context) {
 		"error":   "Pricing plan not found",
 	})
 }
-

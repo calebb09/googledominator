@@ -2,31 +2,26 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"googledominator-backend/config"
 )
 
 type DBClient struct {
-	Prisma *PrismaClient
+	Prisma      *PrismaClient
 	IsConnected bool
 }
 
 var Instance *DBClient
 
 func InitDB(cfg *config.Config) (*DBClient, error) {
-	client := NewClient()
-	
+	client := NewClient(WithDatasourceURL(cfg.DatabaseURL))
+
 	log.Println("[INFO] Connecting to PostgreSQL via Prisma Client...")
 	err := client.Connect()
 	if err != nil {
-		log.Printf("[WARNING] Could not connect to PostgreSQL database: %v", err)
-		log.Println("[INFO] Operating in fallback mode with mock data seeding enabled")
-		Instance = &DBClient{
-			Prisma:      client,
-			IsConnected: false,
-		}
-		return Instance, nil
+		return nil, fmt.Errorf("connect to PostgreSQL: %w", err)
 	}
 
 	log.Println("[INFO] Successfully connected to PostgreSQL via Prisma!")

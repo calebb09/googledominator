@@ -1,3 +1,4 @@
 .env
 .env.example
 db/query-engine-darwing_gen.go
+uploads/*

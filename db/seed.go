@@ -17,48 +17,48 @@ func SeedDB(client *PrismaClient) {
 	if err == nil && len(pricingCount) == 0 {
 		log.Println("[INFO] Seeding initial Pricing Plans into PostgreSQL...")
 		plans := []struct {
-			name         string
-			slug         string
-			description  string
-			monthly      float64
-			annual       float64
+			name          string
+			slug          string
+			description   string
+			monthly       float64
+			annual        float64
 			monthlyStripe string
 			annualStripe  string
-			features     string
-			isPopular    bool
+			features      string
+			isPopular     bool
 		}{
 			{
-				name:         "Existing Website Plan",
-				slug:         "existing-website",
-				description:  "Ideal for established businesses and tax practices looking to dominate Google rankings with an existing domain.",
-				monthly:      197.00,
-				annual:       1497.00,
+				name:          "Existing Website Plan",
+				slug:          "existing-website",
+				description:   "Ideal for established businesses and tax practices looking to dominate Google rankings with an existing domain.",
+				monthly:       197.00,
+				annual:        1497.00,
 				monthlyStripe: "price_1MockExistingWebsiteMonthly",
 				annualStripe:  "price_1MockExistingWebsiteAnnual",
-				features:     "Google Business Profile Optimization||Local Tax Service Keywords Targeting||On-Page SEO & Schema Markup for Tax Firms||Monthly Citation Cleanup & Building||Review Generation Engine & SMS Alerts||Dedicated Account Manager & Monthly Reports",
-				isPopular:    false,
+				features:      "Google Business Profile Optimization||Local Tax Service Keywords Targeting||On-Page SEO & Schema Markup for Tax Firms||Monthly Citation Cleanup & Building||Review Generation Engine & SMS Alerts||Dedicated Account Manager & Monthly Reports",
+				isPopular:     false,
 			},
 			{
-				name:         "New / Turnkey Website Plan",
-				slug:         "new-website",
-				description:  "Complete turnkey solution for new tax firms and local businesses needing custom high-converting website build + local SEO domination.",
-				monthly:      297.00,
-				annual:       1997.00,
+				name:          "New / Turnkey Website Plan",
+				slug:          "new-website",
+				description:   "Complete turnkey solution for new tax firms and local businesses needing custom high-converting website build + local SEO domination.",
+				monthly:       297.00,
+				annual:        1997.00,
 				monthlyStripe: "price_1MockNewWebsiteMonthly",
 				annualStripe:  "price_1MockNewWebsiteAnnual",
-				features:     "Custom Tax Firm High-Converting Website Build||Full Google Business Profile Verification & Optimization||Built-for-Taxes Form 1040/1099 Client Lead Funnels||Speed-Optimized Next.js/Go Infrastructure||Automated Lead Notification via Email/SMS||Google Local Service Ads (LSA) Integration||Priority 24/7 VIP Support",
-				isPopular:    true,
+				features:      "Custom Tax Firm High-Converting Website Build||Full Google Business Profile Verification & Optimization||Built-for-Taxes Form 1040/1099 Client Lead Funnels||Speed-Optimized Next.js/Go Infrastructure||Automated Lead Notification via Email/SMS||Google Local Service Ads (LSA) Integration||Priority 24/7 VIP Support",
+				isPopular:     true,
 			},
 			{
-				name:         "Enterprise Tax Practice Dominator",
-				slug:         "enterprise-tax",
-				description:  "Multi-location tax firms, CPA franchises, and large accounting practices seeking complete market control.",
-				monthly:      497.00,
-				annual:       3997.00,
+				name:          "Enterprise Tax Practice Dominator",
+				slug:          "enterprise-tax",
+				description:   "Multi-location tax firms, CPA franchises, and large accounting practices seeking complete market control.",
+				monthly:       497.00,
+				annual:        3997.00,
 				monthlyStripe: "price_1MockEnterpriseMonthly",
 				annualStripe:  "price_1MockEnterpriseAnnual",
-				features:     "Multi-Location Google Maps Dominator Strategy||Advanced Tax Calculator & Document Upload Portal||Custom Stripe Checkout & Client Deposit System||Automated Review & Reputation Management Suite||Bi-Weekly Strategy Calls with Growth Executive||100% Ranking Guarantee or Money Back",
-				isPopular:    false,
+				features:      "Multi-Location Google Maps Dominator Strategy||Advanced Tax Calculator & Document Upload Portal||Custom Stripe Checkout & Client Deposit System||Automated Review & Reputation Management Suite||Bi-Weekly Strategy Calls with Growth Executive||100% Ranking Guarantee or Money Back",
+				isPopular:     false,
 			},
 		}
 
@@ -70,6 +70,7 @@ func SeedDB(client *PrismaClient) {
 				PricingPlan.PriceMonthly.Set(p.monthly),
 				PricingPlan.PriceAnnual.Set(p.annual),
 				PricingPlan.Features.Set(p.features),
+				PricingPlan.RecurringPayment.Set(int(p.monthly)),
 				PricingPlan.StripePriceIDMonthly.Set(p.monthlyStripe),
 				PricingPlan.StripePriceIDAnnual.Set(p.annualStripe),
 				PricingPlan.IsPopular.Set(p.isPopular),

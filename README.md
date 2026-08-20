@@ -60,7 +60,7 @@ STRIPE_WEBHOOK_SECRET="whsec_mock_stripe_webhook_secret_key"
 
 3. **Push Schema to PostgreSQL Database** *(when PostgreSQL is running)*:
    ```bash
-   npx prisma db push
+   npx prisma@6.19.0 db push --skip-generate
    ```
 
 ---
@@ -190,4 +190,3 @@ curl -X POST http://localhost:8080/api/v1/stripe/checkout-session \
     "email": "jane@apextax.com"
   }'
 ```
-

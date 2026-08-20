@@ -180,7 +180,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Custom Local Tax Domination\",\n  \"slug\": \"custom-local-tax\",\n  \"description\": \"Tailored local SEO and Google Maps optimization suite for growing tax practices.\",\n  \"price_monthly\": 249.00,\n  \"price_annual\": 1799.00,\n  \"stripe_price_id_monthly\": \"price_1MockCustomMonthly\",\n  \"stripe_price_id_annual\": \"price_1MockCustomAnnual\",\n  \"features\": [\n    \"Google Business Profile Setup & Optimization\",\n    \"Form 1040/1120 Keyword Strategy\",\n    \"Local Citation Building\",\n    \"Monthly Analytics Reporting\"\n  ],\n  \"is_popular\": false\n}"
+							"raw": "{\n  \"name\": \"Custom Local Tax Domination\",\n  \"slug\": \"custom-local-tax\",\n  \"description\": \"Tailored local SEO and Google Maps optimization suite for growing tax practices.\",\n  \"price_monthly\": 249.00,\n  \"price_annual\": 1799.00,\n  \"stripe_price_id_monthly\": \"price_1MockCustomMonthly\",\n  \"stripe_price_id_annual\": \"price_1MockCustomAnnual\",\n  \"features\": [\n    \"Google Business Profile Setup & Optimization\",\n    \"Form 1040/1120 Keyword Strategy\",\n    \"Local Citation Building\",\n    \"Monthly Analytics Reporting\"\n  ],\n  \"recurring_payment\": 249,\n  \"is_popular\": false\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/v1/pricing",
@@ -213,7 +213,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Updated Custom Local Tax Plan\",\n  \"price_monthly\": 269.00,\n  \"price_annual\": 1899.00,\n  \"is_popular\": true\n}"
+							"raw": "{\n  \"name\": \"Updated Custom Local Tax Plan\",\n  \"price_monthly\": 269.00,\n  \"price_annual\": 1899.00,\n  \"recurring_payment\": 269,\n  \"is_popular\": true\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/v1/pricing/custom-local-tax",

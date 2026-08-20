@@ -18,6 +18,7 @@ model PricingPlan {
   stripePriceIdMonthly String?
   stripePriceIdAnnual  String?
   features             String
+  recurringPayment     Int      @default(0)
   isPopular            Boolean  @default(false)
   isActive             Boolean  @default(true)
   createdAt            DateTime @default(now())
@@ -136,5 +137,3 @@ model WebinarRegistration {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
-
-
