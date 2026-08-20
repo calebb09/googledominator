@@ -180,7 +180,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Custom Local Tax Domination\",\n  \"slug\": \"custom-local-tax\",\n  \"description\": \"Tailored local SEO and Google Maps optimization suite for growing tax practices.\",\n  \"price_monthly\": 249.00,\n  \"price_annual\": 1799.00,\n  \"stripe_price_id_monthly\": \"price_1MockCustomMonthly\",\n  \"stripe_price_id_annual\": \"price_1MockCustomAnnual\",\n  \"features\": [\n    \"Google Business Profile Setup & Optimization\",\n    \"Form 1040/1120 Keyword Strategy\",\n    \"Local Citation Building\",\n    \"Monthly Analytics Reporting\"\n  ],\n  \"is_popular\": false\n}"
+							"raw": "{\n  \"name\": \"Custom Local Tax Domination\",\n  \"slug\": \"custom-local-tax\",\n  \"description\": \"Tailored local SEO and Google Maps optimization suite for growing tax practices.\",\n  \"price_monthly\": 249.00,\n  \"price_annual\": 1799.00,\n  \"stripe_price_id_monthly\": \"price_1MockCustomMonthly\",\n  \"stripe_price_id_annual\": \"price_1MockCustomAnnual\",\n  \"features\": [\n    \"Google Business Profile Setup & Optimization\",\n    \"Form 1040/1120 Keyword Strategy\",\n    \"Local Citation Building\",\n    \"Monthly Analytics Reporting\"\n  ],\n  \"recurring_payment\": 249,\n  \"is_popular\": false\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/v1/pricing",
@@ -213,7 +213,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Updated Custom Local Tax Plan\",\n  \"price_monthly\": 269.00,\n  \"price_annual\": 1899.00,\n  \"is_popular\": true\n}"
+							"raw": "{\n  \"name\": \"Updated Custom Local Tax Plan\",\n  \"price_monthly\": 269.00,\n  \"price_annual\": 1899.00,\n  \"recurring_payment\": 269,\n  \"is_popular\": true\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/v1/pricing/custom-local-tax",
@@ -535,7 +535,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"business_name\": \"Liberty Tax & Advisory Group\",\n  \"contact_name\": \"Michael Smith, EA\",\n  \"phone\": \"+1-214-555-0182\",\n  \"email\": \"michael@libertytaxgroup.com\",\n  \"has_existing_website\": true,\n  \"website_url\": \"https://libertytaxgroup.com\",\n  \"has_google_business_profile\": true,\n  \"gbp_link\": \"https://maps.google.com/?cid=987654321\",\n  \"street_address\": \"500 Main Street, Suite 200\",\n  \"city\": \"Dallas\",\n  \"state\": \"TX\",\n  \"zip_code\": \"75202\",\n  \"primary_category\": \"Tax Preparation & Accounting\",\n  \"services_offered\": \"Individual Form 1040, Corporate 1120S, Bookkeeping\",\n  \"target_locations\": \"Dallas TX, Richardson TX, Garland TX\",\n  \"keywords\": \"tax prep near me, CPA Dallas, tax return help\",\n  \"visit_model\": \"Both In-Person & Virtual\",\n  \"consent_transactional\": true,\n  \"consent_marketing\": true\n}"
+							"raw": "{\n  \"business_name\": \"Liberty Tax & Advisory Group\",\n  \"contact_name\": \"Michael Smith, EA\",\n  \"phone\": \"+1-214-555-0182\",\n  \"email\": \"michael@libertytaxgroup.com\",\n  \"has_existing_website\": true,\n  \"website_url\": \"https://libertytaxgroup.com\",\n  \"has_google_business_profile\": true,\n  \"gbp_link\": \"https://maps.google.com/?cid=987654321\",\n  \"street_address\": \"500 Main Street, Suite 200\",\n  \"city\": \"Dallas\",\n  \"state\": \"TX\",\n  \"zip_code\": \"75202\",\n  \"primary_category\": \"Tax Preparation & Accounting\",\n  \"services_offered\": \"Individual Form 1040, Corporate 1120S, Bookkeeping\",\n  \"target_locations\": \"Dallas TX, Richardson TX, Garland TX\",\n  \"keywords\": \"tax prep near me, CPA Dallas, tax return help\",\n  \"visit_model\": \"Both In-Person & Virtual\",\n  \"template_id\": \"tpl-001-tax-pro\",\n  \"consent_transactional\": true,\n  \"consent_marketing\": true\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/v1/onboarding",
@@ -699,6 +699,28 @@
 					"response": []
 				},
 				{
+					"name": "Get Stripe Session Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/stripe/session/cs_test_mock_new-website_monthly",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"stripe",
+								"session",
+								"cs_test_mock_new-website_monthly"
+							]
+						},
+						"description": "Verify the status and details of a Stripe checkout session."
+					},
+					"response": []
+				},
+				{
 					"name": "Stripe Webhook Listener",
 					"request": {
 						"method": "POST",
@@ -729,6 +751,349 @@
 							]
 						},
 						"description": "Receives Stripe webhook payloads for checkout session completion and payment updates."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Orders (Authorized)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/stripe/orders",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"stripe",
+								"orders"
+							]
+						},
+						"description": "Retrieve all purchase orders recorded in the database. Requires Authorization header."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Webinar Registration",
+			"item": [
+				{
+					"name": "Register for Webinar",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1-555-234-5678\",\n  \"registration_type\": \"tax professional\",\n  \"additional_info\": \"Looking forward to learning about automated tax lead generation.\",\n  \"agreed\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/webinar/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"webinar",
+								"register"
+							]
+						},
+						"description": "Public endpoint to register for a webinar. Allowed registration_type values: ['tax professional', 'small business', 'large enterprise']. agreed must be true."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Webinar Registrations (Authorized)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/webinar",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"webinar"
+							]
+						},
+						"description": "Retrieve all webinar registrations. Requires Authorization header."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Webinar Registration by ID (Authorized)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/webinar/webinar-reg-001",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"webinar",
+								"webinar-reg-001"
+							]
+						},
+						"description": "Fetch a specific webinar registration by ID. Requires Authorization header."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Webinar Registration (Authorized)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"ATTENDED\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/webinar/webinar-reg-001",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"webinar",
+								"webinar-reg-001"
+							]
+						},
+						"description": "Update details or status of a webinar registration. Requires Authorization header."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Webinar Registration (Authorized)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/webinar/webinar-reg-001",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"webinar",
+								"webinar-reg-001"
+							]
+						},
+						"description": "Delete a webinar registration by ID. Requires Authorization header."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Templates",
+			"item": [
+				{
+					"name": "Create Template (Form-Data Upload)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": "Tax Practice Dominator Pro",
+									"type": "text"
+								},
+								{
+									"key": "subtitle",
+									"value": "High-converting turnkey tax practice website template",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "Optimized for CPA firms, tax preparers, and bookkeeping practices to capture local search leads.",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/templates",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"templates"
+							]
+						},
+						"description": "Create a new template with image file upload via multipart/form-data."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Template (JSON)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Small Business Growth Template\",\n  \"subtitle\": \"Clean modern web design for growing businesses\",\n  \"description\": \"Built-in appointment scheduling, customer review widgets, and Google Business Profile sync.\",\n  \"image_url\": \"/uploads/templates/small_biz_growth.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/templates",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"templates"
+							]
+						},
+						"description": "Create a new template using JSON payload with image_url."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Templates",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/templates",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"templates"
+							]
+						},
+						"description": "Fetch all available website/service templates."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Template by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/templates/tpl-001-tax-pro",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"templates",
+								"tpl-001-tax-pro"
+							]
+						},
+						"description": "Fetch details of a specific template by ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Template",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Tax Practice Dominator Pro (2026 Edition)\",\n  \"subtitle\": \"Updated with latest CPA lead capture tools\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/templates/tpl-001-tax-pro",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"templates",
+								"tpl-001-tax-pro"
+							]
+						},
+						"description": "Update template title, subtitle, description, or image."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Template",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/templates/tpl-001-tax-pro",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"templates",
+								"tpl-001-tax-pro"
+							]
+						},
+						"description": "Delete a template by ID."
 					},
 					"response": []
 				}

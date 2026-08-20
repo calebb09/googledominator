@@ -24,7 +24,7 @@ func main() {
 	// Initialize Prisma PostgreSQL database
 	databaseClient, err := db.InitDB(cfg)
 	if err != nil {
-		log.Printf("[WARNING] Database initialization error: %v", err)
+		log.Fatalf("[FATAL] Database initialization failed: %v", err)
 	}
 	defer databaseClient.Disconnect()
 

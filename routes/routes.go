@@ -28,16 +28,13 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	}))
 
 	// Health check endpoint
-	// r.GET("/health", handlers.HealthCheck)
+	r.GET("/health", handlers.HealthCheck)
 
 	authMiddleware := middleware.AuthMiddleware(cfg)
 
 	// API v1 routes group
 	v1 := r.Group("/api/v1")
 	{
-		// Health check endpoint
-    	v1.GET("/health", handlers.HealthCheck)
-
 		// Admin Authentication endpoints
 		adminAuth := v1.Group("/admin")
 		{
@@ -93,9 +90,35 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		stripeGroup := v1.Group("/stripe")
 		{
 			stripeGroup.POST("/checkout-session", handlers.CreateCheckoutSession(cfg))
+			stripeGroup.GET("/session/:session_id", handlers.GetCheckoutSession(cfg))
 			stripeGroup.POST("/webhook", handlers.HandleStripeWebhook(cfg))
+			stripeGroup.GET("/orders", authMiddleware, handlers.GetOrders)
+		}
+
+		// Webinar Registration endpoints
+		webinar := v1.Group("/webinar")
+		{
+			webinar.POST("/register", handlers.CreateWebinarRegistration) // Public webinar registration intake
+			webinar.POST("", handlers.CreateWebinarRegistration)          // Public webinar registration intake alias
+			webinar.GET("", authMiddleware, handlers.GetWebinarRegistrations)
+			webinar.GET("/:id", authMiddleware, handlers.GetWebinarRegistrationByID)
+			webinar.PUT("/:id", authMiddleware, handlers.UpdateWebinarRegistration)
+			webinar.DELETE("/:id", authMiddleware, handlers.DeleteWebinarRegistration)
+		}
+
+		// Template endpoints (with image upload)
+		templates := v1.Group("/templates")
+		{
+			templates.POST("", handlers.CreateTemplate)       // Create template (Form-Data or JSON)
+			templates.GET("", handlers.GetTemplates)         // List templates
+			templates.GET("/:id", handlers.GetTemplateByID)  // Get template by ID
+			templates.PUT("/:id", handlers.UpdateTemplate)   // Update template
+			templates.DELETE("/:id", handlers.DeleteTemplate)// Delete template
 		}
 	}
+
+	// Serve uploaded images statically
+	r.Static("/uploads", "./uploads")
 
 	return r
 }
