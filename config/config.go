@@ -12,6 +12,8 @@ type Config struct {
 	Env                 string
 	DatabaseURL         string
 	FrontendURL         string
+	BaseURL             string
+	PublicAPIURL        string
 	StripeSecretKey     string
 	StripeWebhookSecret string
 	JWTSecret           string
@@ -43,6 +45,13 @@ func LoadConfig() *Config {
 		frontendURL = "https://googledominator.co"
 	}
 
+	baseURL := os.Getenv("BASE_URL")
+	if baseURL == "" {
+		baseURL = frontendURL
+	}
+
+	publicAPIURL := os.Getenv("PUBLIC_API_URL")
+
 	stripeSecret := os.Getenv("STRIPE_SECRET_KEY")
 	if stripeSecret == "" {
 		stripeSecret = "sk_test_51MockStripeSecretKeyGoogleDominatorKey"
@@ -63,6 +72,8 @@ func LoadConfig() *Config {
 		Env:                 env,
 		DatabaseURL:         dbURL,
 		FrontendURL:         frontendURL,
+		BaseURL:             baseURL,
+		PublicAPIURL:        publicAPIURL,
 		StripeSecretKey:     stripeSecret,
 		StripeWebhookSecret: stripeWebhookSecret,
 		JWTSecret:           jwtSecret,

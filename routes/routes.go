@@ -16,6 +16,7 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	}
 
 	r := gin.Default()
+	handlers.SetOnboardingURLs(cfg.BaseURL, cfg.PublicAPIURL)
 
 	// Configure CORS middleware
 	r.Use(cors.New(cors.Config{
@@ -29,6 +30,10 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 
 	// Health check endpoint
 	r.GET("/health", handlers.HealthCheck)
+
+	// Public callback used by the template picker. The per-submission token is
+	// the credential for this narrowly scoped update.
+	r.PUT("/api/templates/pick", handlers.UpdateOnboardingDesign)
 
 	authMiddleware := middleware.AuthMiddleware(cfg)
 
@@ -110,10 +115,10 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		templates := v1.Group("/templates")
 		{
 			templates.POST("", handlers.CreateTemplate)       // Create template (Form-Data or JSON)
-			templates.GET("", handlers.GetTemplates)         // List templates
-			templates.GET("/:id", handlers.GetTemplateByID)  // Get template by ID
-			templates.PUT("/:id", handlers.UpdateTemplate)   // Update template
-			templates.DELETE("/:id", handlers.DeleteTemplate)// Delete template
+			templates.GET("", handlers.GetTemplates)          // List templates
+			templates.GET("/:id", handlers.GetTemplateByID)   // Get template by ID
+			templates.PUT("/:id", handlers.UpdateTemplate)    // Update template
+			templates.DELETE("/:id", handlers.DeleteTemplate) // Delete template
 		}
 	}
 
