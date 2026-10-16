@@ -64,24 +64,44 @@ model OnboardingSubmission {
   id                       String    @id @default(uuid())
   token                    String?   @unique
   businessName             String
+  dba                      String?
   contactName              String
+  countryCode              String?   @default("+1")
   phone                    String
   email                    String
   hasExistingWebsite       Boolean   @default(false)
   websiteUrl               String?
   hasGoogleBusinessProfile Boolean   @default(false)
   gbpLink                  String?
+  officeAddresses          String?
   streetAddress            String?
   city                     String?
   state                    String?
   zipCode                  String?
   primaryCategory          String?
+  primaryProductService    String?
   servicesOffered          String?
+  additionalServices       String?
   targetLocations          String?
   keywords                 String?
   visitModel               String?
   consentTransactional     Boolean   @default(false)
   consentMarketing         Boolean   @default(false)
+  twitterUrl               String?
+  facebookUrl              String?
+  instagramUrl             String?
+  youtubeUrl               String?
+  otherSocialUrls          Json?
+  useExistingImages        String?   @default("yes")
+  logoUrl                  String?
+  backgroundImages         Json?
+  officeImages             Json?
+  recentWinsImages         Json?
+  agreementBusinessName    String?
+  signerFirstName          String?
+  signerLastName           String?
+  signerPhone              String?
+  agreedTerms              Boolean   @default(false)
   templateId               String?
   template                 Template? @relation(fields: [templateId], references: [id])
   colorScheme              Json?
