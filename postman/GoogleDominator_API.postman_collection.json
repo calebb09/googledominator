@@ -423,7 +423,60 @@
       "name": "Onboarding Form",
       "item": [
         {
-          "name": "Submit Onboarding Form",
+          "name": "Submit Onboarding Form (Multipart Form-Data with File Uploads)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "business_name", "value": "Liberty Tax & Advisory Group", "type": "text" },
+                { "key": "dba", "value": "Liberty Tax Pro", "type": "text" },
+                { "key": "office_addresses", "value": "500 Main Street, Suite 200, Dallas TX", "type": "text" },
+                { "key": "contact_name", "value": "Michael Smith, EA", "type": "text" },
+                { "key": "country_code", "value": "+1", "type": "text" },
+                { "key": "phone", "value": "+1-214-555-0182", "type": "text" },
+                { "key": "email", "value": "michael@libertytaxgroup.com", "type": "text" },
+                { "key": "has_existing_website", "value": "true", "type": "text" },
+                { "key": "website_url", "value": "https://libertytaxgroup.com", "type": "text" },
+                { "key": "has_google_business_profile", "value": "true", "type": "text" },
+                { "key": "gbp_link", "value": "https://maps.google.com/?cid=987654321", "type": "text" },
+                { "key": "twitter_url", "value": "https://x.com/libertytax", "type": "text" },
+                { "key": "facebook_url", "value": "https://facebook.com/libertytaxgroup", "type": "text" },
+                { "key": "instagram_url", "value": "https://instagram.com/libertytax", "type": "text" },
+                { "key": "youtube_url", "value": "https://youtube.com/@libertytax", "type": "text" },
+                { "key": "use_existing_images", "value": "no", "type": "text" },
+                { "key": "primary_category", "value": "Tax Preparation & Accounting", "type": "text" },
+                { "key": "primary_product_service", "value": "Individual Form 1040, Corporate 1120S, Bookkeeping", "type": "text" },
+                { "key": "additional_services", "value": "IRS Tax Resolution, Payroll Services", "type": "text" },
+                { "key": "target_locations", "value": "Dallas, TX\nRichardson, TX\nGarland, TX", "type": "text" },
+                { "key": "keywords", "value": "tax prep near me\nCPA Dallas\ntax return help", "type": "text" },
+                { "key": "visit_model", "value": "Both In-Person & Virtual", "type": "text" },
+                { "key": "consent_transactional", "value": "true", "type": "text" },
+                { "key": "consent_marketing", "value": "true", "type": "text" },
+                { "key": "template_id", "value": "dominator-prime", "type": "text" },
+                { "key": "agreement_business_name", "value": "Liberty Tax & Advisory Group LLC", "type": "text" },
+                { "key": "signer_first_name", "value": "Michael", "type": "text" },
+                { "key": "signer_last_name", "value": "Smith", "type": "text" },
+                { "key": "signer_phone", "value": "+1-214-555-0182", "type": "text" },
+                { "key": "agreed_terms", "value": "true", "type": "text" },
+                { "key": "logo", "type": "file", "src": [], "description": "Select logo image file (PNG/JPG/PDF)" },
+                { "key": "backgrounds", "type": "file", "src": [], "description": "Interior & Exterior images (Multiple files allowed)" },
+                { "key": "office", "type": "file", "src": [], "description": "Office images (Multiple files allowed)" },
+                { "key": "recentWins", "type": "file", "src": [], "description": "Recent wins & proof images (Multiple files allowed)" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/onboarding",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "onboarding"]
+            },
+            "description": "Submits multi-step onboarding form with file uploads (Logo, Interior/Exterior, Office, and Recent Wins photos) via multipart/form-data."
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Onboarding Form (JSON)",
           "request": {
             "method": "POST",
             "header": [
@@ -434,14 +487,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"business_name\": \"Liberty Tax & Advisory Group\",\n  \"contact_name\": \"Michael Smith, EA\",\n  \"phone\": \"+1-214-555-0182\",\n  \"email\": \"michael@libertytaxgroup.com\",\n  \"has_existing_website\": true,\n  \"website_url\": \"https://libertytaxgroup.com\",\n  \"has_google_business_profile\": true,\n  \"gbp_link\": \"https://maps.google.com/?cid=987654321\",\n  \"street_address\": \"500 Main Street, Suite 200\",\n  \"city\": \"Dallas\",\n  \"state\": \"TX\",\n  \"zip_code\": \"75202\",\n  \"primary_category\": \"Tax Preparation & Accounting\",\n  \"services_offered\": \"Individual Form 1040, Corporate 1120S, Bookkeeping\",\n  \"target_locations\": \"Dallas TX, Richardson TX, Garland TX\",\n  \"keywords\": \"tax prep near me, CPA Dallas, tax return help\",\n  \"visit_model\": \"Both In-Person & Virtual\",\n  \"template_id\": \"tpl-001-tax-pro\",\n  \"consent_transactional\": true,\n  \"consent_marketing\": true\n}"
+              "raw": "{\n  \"business_name\": \"Liberty Tax & Advisory Group\",\n  \"dba\": \"Liberty Tax Pro\",\n  \"office_addresses\": \"500 Main Street, Suite 200, Dallas TX\",\n  \"contact_name\": \"Michael Smith, EA\",\n  \"country_code\": \"+1\",\n  \"phone\": \"+1-214-555-0182\",\n  \"email\": \"michael@libertytaxgroup.com\",\n  \"has_existing_website\": true,\n  \"website_url\": \"https://libertytaxgroup.com\",\n  \"has_google_business_profile\": true,\n  \"gbp_link\": \"https://maps.google.com/?cid=987654321\",\n  \"twitter_url\": \"https://x.com/libertytax\",\n  \"facebook_url\": \"https://facebook.com/libertytaxgroup\",\n  \"instagram_url\": \"https://instagram.com/libertytax\",\n  \"youtube_url\": \"https://youtube.com/@libertytax\",\n  \"use_existing_images\": \"yes\",\n  \"primary_category\": \"Tax Preparation & Accounting\",\n  \"primary_product_service\": \"Individual Form 1040, Corporate 1120S, Bookkeeping\",\n  \"additional_services\": \"IRS Tax Resolution, Payroll Services\",\n  \"target_locations\": \"Dallas, TX\\nRichardson, TX\\nGarland, TX\",\n  \"keywords\": \"tax prep near me\\nCPA Dallas\\ntax return help\",\n  \"visit_model\": \"Both In-Person & Virtual\",\n  \"consent_transactional\": true,\n  \"consent_marketing\": true,\n  \"template_id\": \"dominator-prime\",\n  \"agreement_business_name\": \"Liberty Tax & Advisory Group LLC\",\n  \"signer_first_name\": \"Michael\",\n  \"signer_last_name\": \"Smith\",\n  \"signer_phone\": \"+1-214-555-0182\",\n  \"agreed_terms\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/onboarding",
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "onboarding"]
             },
-            "description": "Submits multi-step tax and local SEO onboarding submission."
+            "description": "Submits full onboarding details via JSON payload with all website attributes."
           },
           "response": []
         },
