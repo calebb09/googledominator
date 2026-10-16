@@ -40,8 +40,14 @@ PORT=8080
 ENV=development
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/googledominator?schema=public"
 FRONTEND_URL="https://googledominator.co"
+BASE_URL="https://buildoura.ihopesolutions.com"
+PUBLIC_API_URL="https://api.your-domain.com"
 STRIPE_SECRET_KEY="sk_test_51MockStripeSecretKeyGoogleDominatorKey"
 STRIPE_WEBHOOK_SECRET="whsec_mock_stripe_webhook_secret_key"
+EMAIL_ADDRESS="info@googledominator.co"
+MICROSOFT_TENANT_ID="your-microsoft-tenant-id"
+MICROSOFT_CLIENT_ID="your-entra-application-client-id"
+MICROSOFT_CLIENT_SECRET="your-entra-application-client-secret"
 ```
 
 ---
@@ -98,6 +104,7 @@ The server will start listening on **`http://localhost:8080`**.
 | | `GET` | `/api/v1/taxes/forms` | List tax return forms (1040, 1099, 1120, W-2) |
 | | `POST` | `/api/v1/taxes/services` | Create tax service offering (Admin) |
 | **Onboarding** | `POST` | `/api/v1/onboarding` | Submit multi-step onboarding form |
+| | `PUT` | `/api/templates/pick?token={TOKEN}` | Save colors, fonts, and editor path from the template picker |
 | | `GET` | `/api/v1/onboarding` | List onboarding submissions |
 | | `GET` | `/api/v1/onboarding/:id` | Get specific submission by ID |
 | **Webinar** | `POST` | `/api/v1/webinar/register` | Register for webinar (Public) |

@@ -1,12 +1,20 @@
 package handlers
 
 import (
+	"crypto/rand"
+	"encoding/base64"
+	"encoding/json"
+	"log"
 	"net/http"
+	"net/url"
+	"strings"
 	"sync"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"googledominator-backend/db"
+	gdemail "googledominator-backend/email"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CreateOnboardingSubmissionInput struct {
@@ -34,6 +42,7 @@ type CreateOnboardingSubmissionInput struct {
 
 type OnboardingSubmissionResponse struct {
 	ID                       string            `json:"id"`
+	Token                    string            `json:"token"`
 	BusinessName             string            `json:"business_name"`
 	ContactName              string            `json:"contact_name"`
 	Phone                    string            `json:"phone"`
@@ -55,8 +64,113 @@ type OnboardingSubmissionResponse struct {
 	ConsentMarketing         bool              `json:"consent_marketing"`
 	TemplateID               string            `json:"template_id,omitempty"`
 	Template                 *TemplateResponse `json:"template,omitempty"`
+	ColorScheme              *ColorScheme      `json:"colorScheme,omitempty"`
+	Font                     *FontChoice       `json:"font,omitempty"`
+	EditorPath               string            `json:"editorPath,omitempty"`
 	Status                   string            `json:"status"`
 	CreatedAt                time.Time         `json:"created_at"`
+}
+
+type ColorScheme struct {
+	ID        string   `json:"id" binding:"required"`
+	Name      string   `json:"name" binding:"required"`
+	Primary   string   `json:"primary" binding:"required"`
+	Secondary string   `json:"secondary" binding:"required"`
+	Accent    string   `json:"accent" binding:"required"`
+	Swatches  []string `json:"swatches" binding:"required"`
+}
+
+type FontChoice struct {
+	Heading string `json:"heading" binding:"required"`
+	Body    string `json:"body" binding:"required"`
+}
+
+var (
+	onboardingBaseURL string
+	publicAPIBaseURL  string
+)
+
+func SetOnboardingURLs(baseURL, apiBaseURL string) {
+	onboardingBaseURL = strings.TrimRight(baseURL, "/")
+	publicAPIBaseURL = strings.TrimRight(apiBaseURL, "/")
+}
+
+func generateOnboardingToken() (string, error) {
+	random := make([]byte, 24)
+	if _, err := rand.Read(random); err != nil {
+		return "", err
+	}
+	return "tok_" + base64.RawURLEncoding.EncodeToString(random), nil
+}
+
+func pickTemplateURL(c *gin.Context, token string) string {
+	submitBaseURL := publicAPIBaseURL
+	if submitBaseURL == "" {
+		host := c.GetHeader("X-Forwarded-Host")
+		if host == "" {
+			host = c.Request.Host
+		}
+		scheme := c.GetHeader("X-Forwarded-Proto")
+		if scheme == "" {
+			scheme = "https"
+		}
+		submitBaseURL = scheme + "://" + host
+	}
+	submitURL := submitBaseURL + "/api/v1/onboarding"
+	return onboardingBaseURL + "/pick-template?token=" + url.QueryEscape(token) + "&submitUrl=" + submitURL
+}
+
+// normalizeOnboardingData works around prisma-client-go encoding JSON columns
+// as JSON strings in response models. PostgreSQL still stores these as jsonb.
+func normalizeOnboardingData(data any) any {
+	encoded, err := json.Marshal(data)
+	if err != nil {
+		return data
+	}
+	var normalized any
+	if err = json.Unmarshal(encoded, &normalized); err != nil {
+		return data
+	}
+	normalizeJSONFields(normalized)
+	return normalized
+}
+
+func normalizeJSONFields(value any) {
+	switch current := value.(type) {
+	case []any:
+		for _, item := range current {
+			normalizeJSONFields(item)
+		}
+	case map[string]any:
+		for key, item := range current {
+			if (key == "colorScheme" || key == "font") && item != nil {
+				if raw, ok := item.(string); ok {
+					var object any
+					if json.Unmarshal([]byte(raw), &object) == nil {
+						current[key] = object
+						continue
+					}
+				}
+			}
+			normalizeJSONFields(item)
+		}
+	}
+}
+
+func respondToOnboardingCreation(c *gin.Context, message string, data any, pickerURL string) {
+	// Native browser form posts follow the requested GET flow. JSON clients get
+	// the same destination in both Location and the response body.
+	if strings.Contains(c.GetHeader("Accept"), "text/html") {
+		c.Redirect(http.StatusSeeOther, pickerURL)
+		return
+	}
+	c.Header("Location", pickerURL)
+	c.JSON(http.StatusCreated, gin.H{
+		"success":           true,
+		"message":           message,
+		"data":              normalizeOnboardingData(data),
+		"pick_template_url": pickerURL,
+	})
 }
 
 var (
@@ -100,9 +214,16 @@ func CreateOnboardingSubmission(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
+	token, err := generateOnboardingToken()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to generate onboarding token"})
+		return
+	}
+	pickerURL := pickTemplateURL(c, token)
 
 	if db.Instance != nil && db.Instance.IsConnected {
 		createParams := []db.OnboardingSubmissionSetParam{
+			db.OnboardingSubmission.Token.Set(token),
 			db.OnboardingSubmission.HasExistingWebsite.Set(input.HasExistingWebsite),
 			db.OnboardingSubmission.WebsiteURL.Set(input.WebsiteUrl),
 			db.OnboardingSubmission.HasGoogleBusinessProfile.Set(input.HasGoogleBusinessProfile),
@@ -140,17 +261,16 @@ func CreateOnboardingSubmission(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusCreated, gin.H{
-			"success": true,
-			"message": "Onboarding submission received successfully",
-			"data":    submission,
-		})
+		sendOnboardingNotifications(input)
+
+		respondToOnboardingCreation(c, "Onboarding submission received successfully", submission, pickerURL)
 		return
 	}
 
 	mockSubmissionsLock.Lock()
 	newSub := OnboardingSubmissionResponse{
 		ID:                       "sub-" + time.Now().Format("20060102150405"),
+		Token:                    token,
 		BusinessName:             input.BusinessName,
 		ContactName:              input.ContactName,
 		Phone:                    input.Phone,
@@ -177,11 +297,85 @@ func CreateOnboardingSubmission(c *gin.Context) {
 	mockSubmissions = append(mockSubmissions, newSub)
 	mockSubmissionsLock.Unlock()
 
-	c.JSON(http.StatusCreated, gin.H{
-		"success": true,
-		"message": "Onboarding submission received successfully (mock memory mode)",
-		"data":    newSub,
-	})
+	sendOnboardingNotifications(input)
+
+	respondToOnboardingCreation(c, "Onboarding submission received successfully (mock memory mode)", newSub, pickerURL)
+}
+
+type UpdateOnboardingDesignInput struct {
+	ColorScheme ColorScheme `json:"colorScheme" binding:"required"`
+	Font        FontChoice  `json:"font" binding:"required"`
+	EditorPath  string      `json:"editorPath" binding:"required"`
+}
+
+// UpdateOnboardingDesign receives the result of the external template picker.
+// The opaque token limits the update to the submission that initiated it.
+func UpdateOnboardingDesign(c *gin.Context) {
+	token := c.Query("token")
+	if token == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "token query parameter is required"})
+		return
+	}
+
+	var input UpdateOnboardingDesignInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	if db.Instance != nil && db.Instance.IsConnected {
+		colorJSON, err := json.Marshal(input.ColorScheme)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid colorScheme"})
+			return
+		}
+		fontJSON, err := json.Marshal(input.Font)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid font"})
+			return
+		}
+
+		submission, err := db.Instance.Prisma.OnboardingSubmission.FindUnique(
+			db.OnboardingSubmission.Token.Equals(token),
+		).Update(
+			db.OnboardingSubmission.ColorScheme.Set(db.JSON(colorJSON)),
+			db.OnboardingSubmission.Font.Set(db.JSON(fontJSON)),
+			db.OnboardingSubmission.EditorPath.Set(input.EditorPath),
+		).Exec(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"success": false, "error": "onboarding submission not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"success": true, "message": "Onboarding design updated successfully", "data": normalizeOnboardingData(submission)})
+		return
+	}
+
+	mockSubmissionsLock.Lock()
+	defer mockSubmissionsLock.Unlock()
+	for i := range mockSubmissions {
+		if mockSubmissions[i].Token == token {
+			mockSubmissions[i].ColorScheme = &input.ColorScheme
+			mockSubmissions[i].Font = &input.Font
+			mockSubmissions[i].EditorPath = input.EditorPath
+			c.JSON(http.StatusOK, gin.H{"success": true, "message": "Onboarding design updated (mock memory mode)", "data": mockSubmissions[i]})
+			return
+		}
+	}
+
+	c.JSON(http.StatusNotFound, gin.H{"success": false, "error": "onboarding submission not found"})
+}
+
+func sendOnboardingNotifications(input CreateOnboardingSubmissionInput) {
+	if err := gdemail.SendOnboardingNotifications(
+		input.Email,
+		input.ContactName,
+		input.BusinessName,
+	); err != nil {
+		// The submission is already saved. Logging the notification failure avoids
+		// returning an error that could cause the user to submit a duplicate.
+		log.Printf("[ERROR] Onboarding submission saved, but email notification failed: %v", err)
+	}
 }
 
 func GetOnboardingSubmissions(c *gin.Context) {
@@ -192,7 +386,7 @@ func GetOnboardingSubmissions(c *gin.Context) {
 		if err == nil {
 			c.JSON(http.StatusOK, gin.H{
 				"success": true,
-				"data":    subs,
+				"data":    normalizeOnboardingData(subs),
 			})
 			return
 		}
@@ -219,7 +413,7 @@ func GetOnboardingSubmissionByID(c *gin.Context) {
 		if err == nil && sub != nil {
 			c.JSON(http.StatusOK, gin.H{
 				"success": true,
-				"data":    sub,
+				"data":    normalizeOnboardingData(sub),
 			})
 			return
 		}
@@ -358,7 +552,7 @@ func UpdateOnboardingSubmission(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"success": true,
 			"message": "Onboarding submission updated successfully",
-			"data":    sub,
+			"data":    normalizeOnboardingData(sub),
 		})
 		return
 	}
@@ -487,4 +681,3 @@ func DeleteOnboardingSubmission(c *gin.Context) {
 		"error":   "Onboarding submission not found",
 	})
 }
-
