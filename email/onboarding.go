@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	senderEmail = "info@googledominator.co"
+	senderEmail = "info@googledominator.com"
 	adminEmail  = "eglobalellc@gmail.com"
 )
 
